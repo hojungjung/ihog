@@ -1,4 +1,4 @@
-function equivHOG(feat, n, gam),
+function equivHOG(feat, n, gam, pd),
 
 if ~exist('n', 'var'),
   n = 6;
@@ -7,39 +7,39 @@ if ~exist('gam', 'var'),
   gam = 1;
 end
 
-bord = 10;
+bord = 5;
+[ny, nx, nf] = size(feat);
+numwindows = (ny+12-pd.ny+1)*(nx+12-pd.nx+1);
 
 fprintf('ihog: attempting to find %i equivalent images in HOG space\n', n);
 
-prev = zeros(0, 0, 0);
+prev = zeros(pd.k, numwindows, n);
+ims = ones((ny+2)*8, (nx+2)*8, n);
 dists = zeros(n, 1);
-first = [];
 
 for i=1:n,
   fprintf('ihog: searching for image #%i\n', i);
-  [im, a] = invertHOG(feat, prev, gam);
+  [im, a] = invertHOG(feat, prev(:, :, 1:i), gam, pd);
 
-  if i==1,
-    prev = a;
-    first = im;
-    ims = padarray(im, [bord bord], 1);
-  else,
-    prev = cat(3, prev, a);
-    ims = cat(4, ims, padarray(im, [bord bord], 1));
-  end
+  ims(:, :, i) = im;
+  prev(:, :, i) = a;
 
   subplot(221);
-  imagesc(im); axis image;
+  imagesc(repmat(im, [1 1 3])); axis image;
   title(sprintf('Image #%i', i), 'FontSize', 20);
 
-  subplot(122);
-  montage(ims);
-  title('All Images');
+  subplot(222);
+  montage(repmat(permute(padarray(ims, [bord bord 0], 1), [1 2 4 3]), [1 1 3]));
   axis image;
 
   subplot(223);
-  dists(i) = (im(:)' * first(:))^2;
-  plot(dists(1:i));
+  dists = pdist(reshape(ims(:, :, 1:i), [], i)');
+  dists = squareform(dists);
+  imagesc(dists);
+  colormap jet;
+
+  subplot(224);
+  imagesc(abs(reshape(prev(:, :, 1:i), [], i)));
 
   drawnow;
 end
