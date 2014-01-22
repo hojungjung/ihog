@@ -1,4 +1,7 @@
-function out = equivHOG(feat, n, gam, pd),
+function out = equivHOG(orig, n, gam, pd),
+
+orig = im2double(orig);
+feat = features(orig, 8);
 
 if ~exist('n', 'var'),
   n = 6;
@@ -15,6 +18,7 @@ fprintf('ihog: attempting to find %i equivalent images in HOG space\n', n);
 
 prev = zeros(pd.k, numwindows, n);
 ims = ones((ny+2)*8, (nx+2)*8, n);
+hogs = zeros(ny, nx, nf, n);
 dists = zeros(n, 1);
 
 for i=1:n,
@@ -22,21 +26,31 @@ for i=1:n,
   [im, a] = invertHOG(feat, prev(:, :, 1:i-1), gam, pd);
 
   ims(:, :, i) = im;
+  hogs(:, :, :, i) = features(repmat(im, [1 1 3]), 8);
   prev(:, :, i) = a;
 
   subplot(122);
-  imagesc(repmat(diffim(ims(:, :, 1:i), 5), [1 1 3]));
+  imagesc(repmat(diffim(ims(:, :, 1:i), orig, 5), [1 1 3]));
   axis image;
 
-  subplot(221);
+  subplot(321);
   dists = squareform(pdist(reshape(ims(:, :, 1:i), [], i)'));
   imagesc(dists);
   title('Image Distance Matrix');
+  colorbar;
 
-  subplot(223);
+  subplot(323);
   dists = squareform(pdist(reshape(double(prev(:, :, 1:i) == 0), [], i)', 'hamming'));
   imagesc(dists);
   title('Alpha Distance Matrix');
+  colorbar;
+
+  subplot(325);
+  dists = squareform(pdist(reshape(hogs(:, :, :, 1:i), [], i)'));
+  dists = dists / (ny*nx*nf);
+  imagesc(dists);
+  title('HOG Distance Matrix');
+  colorbar;
 
   colormap gray;
   drawnow;
@@ -45,20 +59,27 @@ end
 out = diffim(ims, 5);
 
 
-function im = diffim(ims, bord),
+function im = diffim(ims, orig, bord),
 
 [h, w, n] = size(ims);
 im = ones(h*(n+1), w*(n+1));
+
+orig = imresize(orig, [h w]);
+orig(orig > 1) = 1;
+orig(orig < 0) = 0;
+orig = mean(orig, 3);
+orig = padarray(orig, [bord bord], .5);
 
 h = h + 2 * bord;
 w = w + 2 * bord;
 
 % build borders
 for i=1:n,
-  im(h*i:h*(i+1)-1, 1:w) = padarray(ims(:, :, i), [bord bord], .8);
-  im(1:h, w*i:w*(i+1)-1) = padarray(ims(:, :, i), [bord bord], .8);
+  im(h*i:h*(i+1)-1, 1:w) = padarray(ims(:, :, i), [bord bord], .5);
+  im(1:h, w*i:w*(i+1)-1) = padarray(ims(:, :, i), [bord bord], .5);
 end
-im(1:h, 1:w) = .8;
+
+im(1:h, 1:w) = orig;
 
 for i=1:n,
   for j=1:n,
