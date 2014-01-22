@@ -19,7 +19,7 @@ dists = zeros(n, 1);
 
 for i=1:n,
   fprintf('ihog: searching for image #%i\n', i);
-  [im, a] = invertHOG(feat, prev(:, :, 1:i), gam, pd);
+  [im, a] = invertHOG(feat, prev(:, :, 1:i-1), gam, pd);
 
   ims(:, :, i) = im;
   prev(:, :, i) = a;
@@ -34,11 +34,11 @@ for i=1:n,
   title('Image Distance Matrix');
 
   subplot(223);
-  dists = squareform(pdist(reshape(prev(:, :, 1:i), [], i)', 'cityblock'));
+  dists = squareform(pdist(reshape(double(prev(:, :, 1:i) == 0), [], i)', 'hamming'));
   imagesc(dists);
   title('Alpha Distance Matrix');
 
-  colormap jet;
+  colormap gray;
   drawnow;
 end
 
@@ -60,21 +60,11 @@ for i=1:n,
 end
 im(1:h, 1:w) = .8;
 
-gmin = inf;
-gmax = -inf;
 for i=1:n,
   for j=1:n,
-    d = ims(:, :, i) - ims(:, :, j);
-    gmin = min(min(d(:)), gmin);
-    gmax = max(max(d(:)), gmax);
-  end
-end
-
-for i=1:n,
-  for j=1:n,
-    d = ims(:, :, i) - ims(:, :, j);
-    d(:) = d(:) - gmin;
-    d(:) = d(:) / (gmax - gmin + eps);
+    d = abs(ims(:, :, i) - ims(:, :, j));
+    d(:) = d(:) * 2;
+    d = min(d, 1);
     d = padarray(d, [bord bord], 1);
     im(h*j:h*(j+1)-1, w*i:w*(i+1)-1) = d;
   end

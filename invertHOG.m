@@ -105,6 +105,7 @@ end
 
 
 dhog = pd.dhog;
+mask = logical(ones(size(windows)));
 
 if numprev > 0,
   if verbose,
@@ -112,6 +113,7 @@ if numprev > 0,
   end
 
   windows = padarray(windows, [numprev*numpreva 0], 0, 'post');
+  mask = cat(1, mask, repmat(logical(eye(numpreva, size(windows,2))), [numprev 1]));
   offset = size(dhog, 1);
   dhog = padarray(dhog, [numprev*numpreva 0], 0, 'post');
   for i=1:numprev,
@@ -127,7 +129,7 @@ end
 % solve lasso problem
 param.lambda = pd.lambda;
 param.mode = 2;
-a = full(mexLasso(single(windows), dhog, param));
+a = full(mexLassoMask(single(windows), dhog, mask, param));
 recon = pd.dgray * a;
 
 if verbose,
