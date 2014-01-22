@@ -33,7 +33,7 @@ if ~exist('prev', 'var'),
   prev = zeros(0,0,0);
 end
 if ~exist('gam', 'var'),
-  gam = 1;
+  gam = 10;
 end
 if ~exist('pd', 'var') || isempty(pd),
   global ihog_pd
@@ -103,18 +103,19 @@ else,
   end
 end
 
-if verbose,
-  fprintf('ihog: adding multiple inversion constraints\n');
-end
 
 dhog = pd.dhog;
 
 if numprev > 0,
+  if verbose,
+    fprintf('ihog: adding multiple inversion constraints\n');
+  end
+
   windows = padarray(windows, [numprev*numpreva 0], 0, 'post');
   offset = size(dhog, 1);
   dhog = padarray(dhog, [numprev*numpreva 0], 0, 'post');
   for i=1:numprev,
-    dhog(offset+(i-1)*numpreva+1:offset+i*numpreva, :) = gam * prev(:, :, i)' * pd.dgray' * pd.dgray;
+    dhog(offset+(i-1)*numpreva+1:offset+i*numpreva, :) = sqrt(gam) * prev(:, :, i)' * pd.dgray' * pd.dgray;
   end
 end
 
