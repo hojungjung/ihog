@@ -27,12 +27,18 @@
 % AxBxC. It will return an PxQxK image tensor where the last channel is the kth
 % inversion. This is usually significantly faster than calling invertHOG() 
 % multiple times.
-function im = invertHOG(feat, pd, whiten, verbose),
+function [im, a] = invertHOG(feat, prev, gam, pd, whiten, verbose),
 
+if ~exist('prev', 'var'),
+  prev = zeros(0,0,0);
+end
+if ~exist('gam', 'var'),
+  gam = 1;
+end
 if ~exist('pd', 'var') || isempty(pd),
   global ihog_pd
   if isempty(ihog_pd),
-    ihog_pd = load('pd-who.mat');
+    ihog_pd = load('pd.mat');
   end
   pd = ihog_pd;
 end
@@ -43,7 +49,7 @@ if ~exist('whiten', 'var'),
   whiten = true;
 end
 if ~exist('verbose', 'var'),
-  verbose = false;
+  verbose = true;
 end
 
 t = tic();
@@ -52,6 +58,9 @@ par = 6;
 feat = padarray(feat, [par par 0 0], 0);
 
 [ny, nx, ~, nn] = size(feat);
+
+numprev = size(prev, 3);
+numpreva = size(prev, 2);
 
 % pad feat if dim lacks occlusion feature
 if size(feat,3) == featuresdim()-1,
@@ -95,13 +104,28 @@ else,
 end
 
 if verbose,
+  fprintf('ihog: adding multiple inversion constraints\n');
+end
+
+dhog = pd.dhog;
+
+if numprev > 0,
+  windows = padarray(windows, [numprev*numpreva 0], 0, 'post');
+  offset = size(dhog, 1);
+  dhog = padarray(dhog, [numprev*numpreva 0], 0, 'post');
+  for i=1:numprev,
+    dhog(offset+(i-1)*numpreva+1:offset+i*numpreva, :) = gam * prev(:, :, i)' * pd.dgray' * pd.dgray;
+  end
+end
+
+if verbose,
   fprintf('ihog: solving lasso\n');
 end
 
 % solve lasso problem
 param.lambda = pd.lambda;
 param.mode = 2;
-a = full(mexLasso(single(windows), pd.dhog, param));
+a = full(mexLasso(single(windows), dhog, param));
 recon = pd.dgray * a;
 
 if verbose,
