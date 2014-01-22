@@ -116,6 +116,7 @@ if numprev > 0,
   dhog = padarray(dhog, [numprev*numpreva 0], 0, 'post');
   for i=1:numprev,
     dhog(offset+(i-1)*numpreva+1:offset+i*numpreva, :) = sqrt(gam) * prev(:, :, i)' * pd.dgray' * pd.dgray;
+    %dhog(offset+(i-1)*numpreva+1:offset+i*numpreva, :) = sqrt(gam) * prev(:, :, i)';
   end
 end
 

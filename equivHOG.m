@@ -1,4 +1,4 @@
-function equivHOG(feat, n, gam, pd),
+function out = equivHOG(feat, n, gam, pd),
 
 if ~exist('n', 'var'),
   n = 6;
@@ -24,22 +24,58 @@ for i=1:n,
   ims(:, :, i) = im;
   prev(:, :, i) = a;
 
-  subplot(221);
-  imagesc(repmat(im, [1 1 3])); axis image;
-  title(sprintf('Image #%i', i), 'FontSize', 20);
-
-  subplot(222);
-  montage(repmat(permute(padarray(ims, [bord bord 0], 1), [1 2 4 3]), [1 1 3]));
+  subplot(122);
+  imagesc(repmat(diffim(ims(:, :, 1:i), 5), [1 1 3]));
   axis image;
 
-  subplot(223);
-  dists = pdist(reshape(ims(:, :, 1:i), [], i)');
-  dists = squareform(dists);
+  subplot(221);
+  dists = squareform(pdist(reshape(ims(:, :, 1:i), [], i)'));
   imagesc(dists);
+  title('Image Distance Matrix');
+
+  subplot(223);
+  dists = squareform(pdist(reshape(prev(:, :, 1:i), [], i)', 'cityblock'));
+  imagesc(dists);
+  title('Alpha Distance Matrix');
+
   colormap jet;
-
-  subplot(224);
-  imagesc(abs(reshape(prev(:, :, 1:i), [], i)));
-
   drawnow;
+end
+
+out = diffim(ims, 5);
+
+
+function im = diffim(ims, bord),
+
+[h, w, n] = size(ims);
+im = ones(h*(n+1), w*(n+1));
+
+h = h + 2 * bord;
+w = w + 2 * bord;
+
+% build borders
+for i=1:n,
+  im(h*i:h*(i+1)-1, 1:w) = padarray(ims(:, :, i), [bord bord], .8);
+  im(1:h, w*i:w*(i+1)-1) = padarray(ims(:, :, i), [bord bord], .8);
+end
+im(1:h, 1:w) = .8;
+
+gmin = inf;
+gmax = -inf;
+for i=1:n,
+  for j=1:n,
+    d = ims(:, :, i) - ims(:, :, j);
+    gmin = min(min(d(:)), gmin);
+    gmax = max(max(d(:)), gmax);
+  end
+end
+
+for i=1:n,
+  for j=1:n,
+    d = ims(:, :, i) - ims(:, :, j);
+    d(:) = d(:) - gmin;
+    d(:) = d(:) / (gmax - gmin + eps);
+    d = padarray(d, [bord bord], 1);
+    im(h*j:h*(j+1)-1, w*i:w*(i+1)-1) = d;
+  end
 end
