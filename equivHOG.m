@@ -12,6 +12,9 @@ end
 if ~exist('sig', 'var'),
   sig = 10;
 end
+if ~exist('si', 'var'),
+  si = .1;
+end
 
 bord = 5;
 [ny, nx, nf] = size(feat);
@@ -44,7 +47,7 @@ for i=1:n,
 
   subplot(323);
   sparsity = mean(reshape(double(prev(:, :, 1:i) == 0), [], i));
-  plot(sparsity(:), '-*');
+  plot(1-sparsity(:), '-*');
   title('Alpha Sparsity');
 
   subplot(325);
@@ -58,7 +61,7 @@ for i=1:n,
   drawnow;
 end
 
-out = diffim(ims, orig, 5);
+out = ims;
 
 
 function im = diffim(ims, orig, bord),

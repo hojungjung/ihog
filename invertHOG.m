@@ -112,13 +112,15 @@ if numprev > 0,
     fprintf('ihog: adding multiple inversion constraints\n');
   end
 
+  clf;
   % build blurred dgray
   dblur = pd.dgray;
   fil = fspecial('gaussian', [pd.sbin pd.sbin], sig);
   for i=1:pd.k,
+    elemnorm = norm(pd.dgray(:, i));
     elem = reshape(dblur(:, i), [(pd.ny+2)*pd.sbin (pd.nx+2)*pd.sbin]);
-    elemblur = filter2(fil, elem, 'same');
-    dblur(:, i) = elemblur(:);
+    elemp = elem - filter2(fil, elem, 'same');
+    dblur(:, i) = elemp(:) / elemnorm;
   end
 
   windows = padarray(windows, [numprev*numpreva 0], 0, 'post');
