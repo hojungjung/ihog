@@ -27,7 +27,7 @@
 % AxBxC. It will return an PxQxK image tensor where the last channel is the kth
 % inversion. This is usually significantly faster than calling invertHOG() 
 % multiple times.
-function [im, a] = invertHOG(feat, prev, gam, pd, whiten, verbose),
+function [im, a] = invertHOG(feat, prev, gam, sig, pd, whiten, verbose),
 
 if ~exist('prev', 'var'),
   prev = zeros(0,0,0);
@@ -112,12 +112,21 @@ if numprev > 0,
     fprintf('ihog: adding multiple inversion constraints\n');
   end
 
+  % build blurred dgray
+  dblur = pd.dgray;
+  fil = fspecial('gaussian', [pd.sbin pd.sbin], sig);
+  for i=1:pd.k,
+    elem = reshape(dblur(:, i), [(pd.ny+2)*pd.sbin (pd.nx+2)*pd.sbin]);
+    elemblur = filter2(fil, elem, 'same');
+    dblur(:, i) = elemblur(:);
+  end
+
   windows = padarray(windows, [numprev*numpreva 0], 0, 'post');
   mask = cat(1, mask, repmat(logical(eye(numpreva, size(windows,2))), [numprev 1]));
   offset = size(dhog, 1);
   dhog = padarray(dhog, [numprev*numpreva 0], 0, 'post');
   for i=1:numprev,
-    dhog(offset+(i-1)*numpreva+1:offset+i*numpreva, :) = sqrt(gam) * prev(:, :, i)' * pd.dgray' * pd.dgray;
+    dhog(offset+(i-1)*numpreva+1:offset+i*numpreva, :) = sqrt(gam) * prev(:, :, i)' * dblur' * dblur;
     %dhog(offset+(i-1)*numpreva+1:offset+i*numpreva, :) = sqrt(gam) * prev(:, :, i)';
   end
 end

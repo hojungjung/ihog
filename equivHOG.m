@@ -1,4 +1,4 @@
-function out = equivHOG(orig, n, gam, pd),
+function out = equivHOG(orig, n, gam, sig, pd),
 
 orig = im2double(orig);
 feat = features(orig, 8);
@@ -8,6 +8,9 @@ if ~exist('n', 'var'),
 end
 if ~exist('gam', 'var'),
   gam = 1;
+end
+if ~exist('sig', 'var'),
+  sig = 10;
 end
 
 bord = 5;
@@ -23,7 +26,7 @@ dists = zeros(n, 1);
 
 for i=1:n,
   fprintf('ihog: searching for image #%i\n', i);
-  [im, a] = invertHOG(feat, prev(:, :, 1:i-1), gam, pd);
+  [im, a] = invertHOG(feat, prev(:, :, 1:i-1), gam, sig, pd);
 
   ims(:, :, i) = im;
   hogs(:, :, :, i) = features(repmat(im, [1 1 3]), 8);
@@ -47,7 +50,7 @@ for i=1:n,
 
   subplot(325);
   dists = squareform(pdist(reshape(hogs(:, :, :, 1:i), [], i)'));
-  dists = dists / (ny*nx*nf);
+  dists = sqrt(dists / (ny*nx*nf));
   imagesc(dists);
   title('HOG Distance Matrix');
   colorbar;
@@ -56,7 +59,7 @@ for i=1:n,
   drawnow;
 end
 
-out = diffim(ims, 5);
+out = diffim(ims, orig, 5);
 
 
 function im = diffim(ims, orig, bord),
