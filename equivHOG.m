@@ -35,27 +35,26 @@ for i=1:n,
   hogs(:, :, :, i) = features(repmat(im, [1 1 3]), 8);
   prev(:, :, i) = a;
 
+  figure(1);
   subplot(122);
-  imagesc(repmat(diffim(ims(:, :, 1:i), orig, 5), [1 1 3]));
+  imagesc(repmat(imdiffmatrix(ims(:, :, 1:i), orig, 5), [1 1 3]));
   axis image;
 
   subplot(321);
-  dists = squareform(pdist(reshape(ims(:, :, 1:i), [], i)'));
-  imagesc(dists);
-  title('Image Distance Matrix');
-  colorbar;
-
-  subplot(323);
   sparsity = mean(reshape(double(prev(:, :, 1:i) == 0), [], i));
   plot(1-sparsity(:), '-*');
   title('Alpha Sparsity');
 
-  subplot(325);
+  subplot(323);
   dists = squareform(pdist(reshape(hogs(:, :, :, 1:i), [], i)'));
   dists = sqrt(dists / (ny*nx*nf));
   imagesc(dists);
   title('HOG Distance Matrix');
   colorbar;
+
+  subplot(325);
+  imagesc(hogimvis(ims(:, :, 1:i), hogs(:, :, :, 1:i)));
+  axis image;
 
   colormap gray;
   drawnow;
@@ -64,7 +63,7 @@ end
 out = ims;
 
 
-function im = diffim(ims, orig, bord),
+function im = imdiffmatrix(ims, orig, bord),
 
 [h, w, n] = size(ims);
 im = ones(h*(n+1), w*(n+1));
@@ -95,3 +94,21 @@ for i=1:n,
     im(h*j:h*(j+1)-1, w*i:w*(i+1)-1) = d;
   end
 end
+
+
+
+function out = hogimvis(ims, hogs),
+
+out = [];
+for i=1:size(ims,3),
+  im = ims(:, :, i);
+  hog = showHOG(hogs(:, :, :, i));
+  hog = imresize(hog, size(im));
+  hog(hog > 1) = 1;
+  hog(hog < 0) = 0;
+  im = padarray(im, [5 10], 1);
+  hog = padarray(hog, [5 10], 1);
+  graphic = [im; hog];
+  out = [out graphic];
+end
+out = padarray(out, [5 10], 1);
