@@ -43,7 +43,8 @@ for i=1:n,
   subplot(321);
   sparsity = mean(reshape(double(prev(:, :, 1:i) == 0), [], i));
   plot(1-sparsity(:), '-*');
-  title('Alpha Sparsity');
+  title('Alpha Density');
+  ylabel('Density');
 
   subplot(323);
   dists = squareform(pdist(reshape(hogs(:, :, :, 1:i), [], i)'));
@@ -102,7 +103,9 @@ function out = hogimvis(ims, hogs),
 out = [];
 for i=1:size(ims,3),
   im = ims(:, :, i);
-  hog = showHOG(hogs(:, :, :, i));
+  hog = hogs(:, :, :, i);
+  hog(:) = max(hog(:) - mean(hog(:)), 0);
+  hog = showHOG(hog);
   hog = imresize(hog, size(im));
   hog(hog > 1) = 1;
   hog(hog < 0) = 0;
@@ -111,4 +114,4 @@ for i=1:size(ims,3),
   graphic = [im; hog];
   out = [out graphic];
 end
-out = padarray(out, [5 10], 1);
+out = padarray(out, [5 0], 1);

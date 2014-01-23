@@ -103,7 +103,6 @@ else,
   end
 end
 
-
 dhog = pd.dhog;
 mask = logical(ones(size(windows)));
 
@@ -112,7 +111,6 @@ if numprev > 0,
     fprintf('ihog: adding multiple inversion constraints\n');
   end
 
-  clf;
   % build blurred dgray
   dblur = pd.dgray;
   fil = fspecial('gaussian', [pd.sbin pd.sbin], sig);
