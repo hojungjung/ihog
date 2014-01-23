@@ -37,20 +37,21 @@ for i=1:n,
 
   figure(1);
   subplot(122);
-  imagesc(repmat(imdiffmatrix(ims(:, :, 1:i), orig, 5), [1 1 3]));
-  axis image;
+  imdiffmatrix(ims(:, :, 1:i), orig, 5);
 
   subplot(321);
   sparsity = mean(reshape(double(prev(:, :, 1:i) == 0), [], i));
-  plot(1-sparsity(:), '-*');
-  title('Alpha Density');
-  ylabel('Density');
+  plot(sparsity(:), '.-', 'LineWidth', 2, 'MarkerSize', 40);
+  title('Alpha Sparsity');
+  ylabel('Sparsity');
+  ylim([0.75 1]);
+  grid on;
 
   subplot(323);
   dists = squareform(pdist(reshape(hogs(:, :, :, 1:i), [], i)'));
   dists = sqrt(dists / (ny*nx*nf));
-  imagesc(dists);
-  title('HOG Distance Matrix');
+  imagesc(dists, [0 .05]);
+  title(sprintf('HOG Distance Matrix (max = %0.4f)', max(dists(:))));
   colorbar;
 
   subplot(325);

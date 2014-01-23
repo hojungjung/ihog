@@ -134,11 +134,17 @@ end
 % solve lasso problem
 param.lambda = pd.lambda * size(windows,1) / (pd.ny*pd.nx*featuresdim() + numprev);
 param.mode = 2;
+
+%param.lambda = 6.09;
+%param.mode = 0;
+
 a = full(mexLassoMask(single(windows), dhog, mask, param));
 recon = pd.dgray * a;
 
 if verbose,
   fprintf('ihog: sparsity = %f\n', sum(a(:) == 0) / length(a(:)));
+  fprintf('ihog: ||a||_0 min=%i  mean=%0.2f  max=%i\n', min(sum(a~=0)), mean(sum(a~=0)), max(sum(a~=0)));
+  fprintf('ihog: ||a||_1 min=%0.2f  mean=%0.2f  max=%0.2f\n', min(sum(abs(a))), mean(sum(abs(a))), max(sum(abs(a))));
 end
 
 if verbose,
