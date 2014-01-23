@@ -35,6 +35,9 @@ end
 if ~exist('gam', 'var'),
   gam = 10;
 end
+if ~exist('sig', 'var'),
+  sig = 1;
+end
 if ~exist('pd', 'var') || isempty(pd),
   global ihog_pd
   if isempty(ihog_pd),
@@ -111,15 +114,8 @@ if numprev > 0,
     fprintf('ihog: adding multiple inversion constraints\n');
   end
 
-  % build blurred dgray
-  dblur = pd.dgray;
-  fil = fspecial('gaussian', [pd.sbin pd.sbin], sig);
-  for i=1:pd.k,
-    elemnorm = norm(pd.dgray(:, i));
-    elem = reshape(dblur(:, i), [(pd.ny+2)*pd.sbin (pd.nx+2)*pd.sbin]);
-    elemp = elem - filter2(fil, elem, 'same');
-    dblur(:, i) = elemp(:) / elemnorm;
-  end
+  % build blurred dictionary
+  dblur = xpassdict(pd, sig, false);
 
   windows = padarray(windows, [numprev*numpreva 0], 0, 'post');
   mask = cat(1, mask, repmat(logical(eye(numpreva, size(windows,2))), [numprev 1]));

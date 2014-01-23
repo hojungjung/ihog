@@ -10,7 +10,7 @@ if ~exist('gam', 'var'),
   gam = 1;
 end
 if ~exist('sig', 'var'),
-  sig = 10;
+  sig = 1;
 end
 if ~exist('si', 'var'),
   si = .1;
@@ -62,39 +62,6 @@ for i=1:n,
 end
 
 out = ims;
-
-
-function im = imdiffmatrix(ims, orig, bord),
-
-[h, w, n] = size(ims);
-im = ones(h*(n+1), w*(n+1));
-
-orig = imresize(orig, [h w]);
-orig(orig > 1) = 1;
-orig(orig < 0) = 0;
-orig = mean(orig, 3);
-orig = padarray(orig, [bord bord], .5);
-
-h = h + 2 * bord;
-w = w + 2 * bord;
-
-% build borders
-for i=1:n,
-  im(h*i:h*(i+1)-1, 1:w) = padarray(ims(:, :, i), [bord bord], .5);
-  im(1:h, w*i:w*(i+1)-1) = padarray(ims(:, :, i), [bord bord], .5);
-end
-
-im(1:h, 1:w) = orig;
-
-for i=1:n,
-  for j=1:n,
-    d = abs(ims(:, :, i) - ims(:, :, j));
-    d(:) = d(:) * 2;
-    d = min(d, 1);
-    d = padarray(d, [bord bord], 1);
-    im(h*j:h*(j+1)-1, w*i:w*(i+1)-1) = d;
-  end
-end
 
 
 
