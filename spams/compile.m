@@ -56,7 +56,8 @@ if strcmp(compiler,'gcc')
        path_to_compiler_libraries='/usr/lib/gcc/x86_64-redhat-linux/4.7.2/';
        path_to_compiler_libraries='/usr/lib/gcc/x86_64-linux-gnu/4.7';
        path_to_compiler_libraries='/usr/lib/gcc/x86_64-linux-gnu/4.8/';
-       path_to_compiler='/usr/bin/';
+       path_to_compiler_libraries='/usr/local/lib/gcc/x86_64-apple-darwin13.0.0/4.9.0/';
+       path_to_compiler='/usr/local/bin/';
     else
        % example when compiler='gcc' for Windows+cygwin:   (the script does not
        % work at the moment in this configuration
@@ -134,54 +135,55 @@ end
 out_dir='./build/';
 
 COMPILE = { 
-            % compile dictLearn toolbox
+            %% compile dictLearn toolbox
             '-I./linalg/ -I./decomp/ -I./prox/ -I./dictLearn/ dictLearn/mex/mexTrainDL.cpp', 
-            '-I./linalg/ -I./decomp/ -I./prox/ -I./dictLearn/ dictLearn/mex/mexStructTrainDL.cpp', 
-            '-I./linalg/ -I./decomp/ -I./prox/ -I./dictLearn/ dictLearn/mex/mexTrainDL_Memory.cpp',
-            % compile dag toolbox
-            '-I./dags/ -I./linalg/ dags/mex/mexRemoveCyclesGraph.cpp',
-            '-I./dags/ -I./linalg/ dags/mex/mexCountPathsDAG.cpp',
-            '-I./dags/ -I./linalg/ dags/mex/mexCountConnexComponents.cpp',
-            % compile proximal toolbox
-            '-I./linalg/ -I./prox/ prox/mex/mexStochasticProx.cpp',
-            '-I./linalg/ -I./prox/ prox/mex/mexIncrementalProx.cpp',
-            '-I./linalg/ -I./prox/ prox/mex/mexFistaFlat.cpp',
-            '-I./linalg/ -I./prox/ prox/mex/mexFistaTree.cpp',  
-            '-I./linalg/ -I./prox/ prox/mex/mexFistaGraph.cpp',  
-            '-I./linalg/ -I./prox/ prox/mex/mexFistaPathCoding.cpp',  
-            '-I./linalg/ -I./prox/ prox/mex/mexProximalFlat.cpp', 
-            '-I./linalg/ -I./prox/ prox/mex/mexProximalTree.cpp',  
-            '-I./linalg/ -I./prox/ prox/mex/mexProximalGraph.cpp',
-            '-I./linalg/ -I./prox/ prox/mex/mexProximalPathCoding.cpp',  
-            '-I./linalg/ -I./prox/ prox/mex/mexEvalPathCoding.cpp',  
-            % compile linalg toolbox
-            '-I./linalg/ linalg/mex/mexCalcAAt.cpp',
-            '-I./linalg/ linalg/mex/mexCalcXAt.cpp',  
-            '-I./linalg/ linalg/mex/mexCalcXY.cpp',  
-            '-I./linalg/ linalg/mex/mexCalcXYt.cpp', 
-            '-I./linalg/ linalg/mex/mexCalcXtY.cpp',  
-            '-I./linalg/ linalg/mex/mexConjGrad.cpp',  
-            '-I./linalg/ linalg/mex/mexInvSym.cpp',  
-            '-I./linalg/ linalg/mex/mexSort.cpp', 
-            '-I./linalg/ linalg/mex/mexNormalize.cpp',  
-            % compile decomp toolbox
-            '-I./linalg/ -I./decomp/ decomp/mex/mexOMP.cpp',
+            %'-I./linalg/ -I./decomp/ -I./prox/ -I./dictLearn/ dictLearn/mex/mexStructTrainDL.cpp', 
+            %'-I./linalg/ -I./decomp/ -I./prox/ -I./dictLearn/ dictLearn/mex/mexTrainDL_Memory.cpp',
+            %% compile dag toolbox
+            %'-I./dags/ -I./linalg/ dags/mex/mexRemoveCyclesGraph.cpp',
+            %'-I./dags/ -I./linalg/ dags/mex/mexCountPathsDAG.cpp',
+            %'-I./dags/ -I./linalg/ dags/mex/mexCountConnexComponents.cpp',
+            %% compile proximal toolbox
+            %'-I./linalg/ -I./prox/ prox/mex/mexStochasticProx.cpp',
+            %'-I./linalg/ -I./prox/ prox/mex/mexIncrementalProx.cpp',
+            %'-I./linalg/ -I./prox/ prox/mex/mexFistaFlat.cpp',
+            %'-I./linalg/ -I./prox/ prox/mex/mexFistaTree.cpp',  
+            %'-I./linalg/ -I./prox/ prox/mex/mexFistaGraph.cpp',  
+            %'-I./linalg/ -I./prox/ prox/mex/mexFistaPathCoding.cpp',  
+            %'-I./linalg/ -I./prox/ prox/mex/mexProximalFlat.cpp', 
+            %'-I./linalg/ -I./prox/ prox/mex/mexProximalTree.cpp',  
+            %'-I./linalg/ -I./prox/ prox/mex/mexProximalGraph.cpp',
+            %'-I./linalg/ -I./prox/ prox/mex/mexProximalPathCoding.cpp',  
+            %'-I./linalg/ -I./prox/ prox/mex/mexEvalPathCoding.cpp',  
+            %% compile linalg toolbox
+            %'-I./linalg/ linalg/mex/mexCalcAAt.cpp',
+            %'-I./linalg/ linalg/mex/mexCalcXAt.cpp',  
+            %'-I./linalg/ linalg/mex/mexCalcXY.cpp',  
+            %'-I./linalg/ linalg/mex/mexCalcXYt.cpp', 
+            %'-I./linalg/ linalg/mex/mexCalcXtY.cpp',  
+            %'-I./linalg/ linalg/mex/mexConjGrad.cpp',  
+            %'-I./linalg/ linalg/mex/mexInvSym.cpp',  
+            %'-I./linalg/ linalg/mex/mexSort.cpp', 
+            %'-I./linalg/ linalg/mex/mexNormalize.cpp',  
+            %% compile decomp toolbox
+            %'-I./linalg/ -I./decomp/ decomp/mex/mexOMP.cpp',
             '-I./linalg/ -I./decomp/ decomp/mex/mexLasso.cpp',
-            '-I./linalg/ -I./decomp/ decomp/mex/mexLassoWeighted.cpp',
-            '-I./linalg/ -I./decomp/ decomp/mex/mexRidgeRegression.cpp',
-            '-I./linalg/ -I./decomp/ decomp/mex/mexCD.cpp'
-            '-I./linalg/ -I./decomp/ decomp/mex/mexL1L2BCD.cpp', 
+            %'-I./linalg/ -I./decomp/ decomp/mex/mexLassoWeighted.cpp',
+            %'-I./linalg/ -I./decomp/ decomp/mex/mexRidgeRegression.cpp',
+            %'-I./linalg/ -I./decomp/ decomp/mex/mexCD.cpp'
+            %'-I./linalg/ -I./decomp/ decomp/mex/mexL1L2BCD.cpp', 
             '-I./linalg/ -I./decomp/ decomp/mex/mexLassoMask.cpp',
-            '-I./linalg/ -I./decomp/ decomp/mex/mexOMPMask.cpp',
-            '-I./linalg/ -I./decomp/ decomp/mex/mexSOMP.cpp',
-            '-I./linalg/ -I./decomp/ decomp/mex/mexSparseProject.cpp',
-            % misc
-            '-I./linalg/ linalg/mex/mexBayer.cpp',
-            '-I./linalg/ -I./prox/ prox/mex/mexGraphOfGroupStruct.cpp',  
-            '-I./linalg/ -I./prox/ prox/mex/mexGroupStructOfString.cpp',  
-            '-I./linalg/ -I./prox/ prox/mex/mexReadGroupStruct.cpp',  
-            '-I./linalg/ -I./prox/ prox/mex/mexSimpleGroupTree.cpp',  
-            '-I./linalg/ -I./prox/ prox/mex/mexTreeOfGroupStruct.cpp'};
+            %'-I./linalg/ -I./decomp/ decomp/mex/mexOMPMask.cpp',
+            %'-I./linalg/ -I./decomp/ decomp/mex/mexSOMP.cpp',
+            %'-I./linalg/ -I./decomp/ decomp/mex/mexSparseProject.cpp',
+            %% misc
+            %'-I./linalg/ linalg/mex/mexBayer.cpp',
+            %'-I./linalg/ -I./prox/ prox/mex/mexGraphOfGroupStruct.cpp',  
+            %'-I./linalg/ -I./prox/ prox/mex/mexGroupStructOfString.cpp',  
+            %'-I./linalg/ -I./prox/ prox/mex/mexReadGroupStruct.cpp',  
+            %'-I./linalg/ -I./prox/ prox/mex/mexSimpleGroupTree.cpp',  
+            %'-I./linalg/ -I./prox/ prox/mex/mexTreeOfGroupStruct.cpp'
+            };
 if linux || mac
    fid=fopen('run_matlab.sh','w+');
    fprintf(fid,'#!/bin/sh\n');
