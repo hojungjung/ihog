@@ -43,10 +43,10 @@ for i=1:n,
   colorbar;
 
   subplot(323);
-  dists = squareform(pdist(reshape(double(prev(:, :, 1:i) == 0), [], i)', 'hamming'));
-  imagesc(dists);
-  title('Alpha Distance Matrix');
-  colorbar;
+  sparsity = sum(reshape(double(prev(:, :, 1:i) == 0), [], i));
+  sparsity = sparsity / size(sparsity,1);
+  plot(sparsity(:), '-*');
+  title('Alpha Sparsity');
 
   subplot(325);
   dists = squareform(pdist(reshape(hogs(:, :, :, 1:i), [], i)'));
