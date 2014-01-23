@@ -138,7 +138,6 @@ end
 % solve lasso problem
 param.lambda = pd.lambda * size(windows,1) / (pd.ny*pd.nx*featuresdim() + numprev);
 param.mode = 2;
-param.numThreads = 12;
 a = full(mexLassoMask(single(windows), dhog, mask, param));
 recon = pd.dgray * a;
 
