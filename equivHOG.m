@@ -43,8 +43,7 @@ for i=1:n,
   colorbar;
 
   subplot(323);
-  sparsity = sum(reshape(double(prev(:, :, 1:i) == 0), [], i));
-  sparsity = sparsity / size(sparsity,1);
+  sparsity = mean(reshape(double(prev(:, :, 1:i) == 0), [], i));
   plot(sparsity(:), '-*');
   title('Alpha Sparsity');
 
