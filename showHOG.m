@@ -3,6 +3,12 @@
 % Legacy HOG visualization
 function out = showHOG(w)
 
+if ndims(w) == 2,
+  w = features(repmat(im2double(w), [1 1 3]), 8);
+elseif ndims(w) == 3 && size(w,3) == 3,
+  w = features(im2double(w), 8);
+end
+
 % Make pictures of positive and negative weights
 bs = 20;
 pos = HOGpicture(w, bs);
