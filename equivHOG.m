@@ -1,4 +1,4 @@
-function out = equivHOG(orig, n, gam, sig, triangle, pd),
+function out = equivHOG(orig, n, gam, sig, omp, triangle, pd),
 
 orig = im2double(orig);
 feat = features(orig, 8);
@@ -11,6 +11,9 @@ if ~exist('gam', 'var'),
 end
 if ~exist('sig', 'var'),
   sig = 1;
+end
+if ~exist('omp', 'var'),
+  omp = 0;
 end
 if ~exist('triangle', 'var'),
   triangle = 0;
@@ -25,11 +28,11 @@ fprintf('ihog: attempting to find %i equivalent images in HOG space\n', n);
 prev = zeros(pd.k, numwindows, n);
 ims = ones((ny+2)*8, (nx+2)*8, n);
 hogs = zeros(ny, nx, nf, n);
-dists = zeros(n, 1);
+hogdists = zeros(n, 1);
 
 for i=1:n,
   fprintf('ihog: searching for image %i of %i\n', i, n);
-  [im, a] = invertHOG(feat, prev(:, :, 1:i-1), gam, sig, pd);
+  [im, a] = invertHOG(feat, prev(:, :, 1:i-1), gam, sig, omp, pd);
 
   if triangle > 0,
     fprintf('ihog: attempting triangle reconstruction\n');
@@ -39,6 +42,9 @@ for i=1:n,
   ims(:, :, i) = im;
   hogs(:, :, :, i) = features(repmat(im, [1 1 3]), 8);
   prev(:, :, i) = a;
+
+  d = hogs(:, :, :, i) - feat;
+  hogdists(i) = sqrt(mean(d(:).^2));
 
   figure(1);
   subplot(122);
@@ -53,11 +59,10 @@ for i=1:n,
   grid on;
 
   subplot(323);
-  dists = squareform(pdist(reshape(hogs(:, :, :, 1:i), [], i)'));
-  dists = sqrt(dists / (ny*nx*nf));
-  imagesc(dists, [0 .05]);
-  title(sprintf('HOG Distance Matrix (max = %0.4f)', max(dists(:))));
-  colorbar;
+  plot(hogdists(1:i), '.-', 'LineWidth', 2, 'MarkerSize', 40);
+  title('HOG Distance to Target');
+  ylim([0 .1+max(hogdists(:))]);
+  grid on;
 
   subplot(325);
   imagesc(hogimvis(ims(:, :, 1:i), hogs(:, :, :, 1:i)));

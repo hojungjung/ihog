@@ -89,7 +89,7 @@ for iter=1:iters,
   candidatechanges(iy:iy+h-1, ix:ix+w-1) = candidatechanges(iy:iy+h-1, ix:ix+w-1) + trial;
 
   candidatefeat = features(repmat(candidate, [1 1 3]), sbin);
-  candidateobj = norm(candidatefeat(:) - feat(:), 2) / (ny*nx);
+  candidateobj = sqrt(mean((candidatefeat(:) - feat(:)).^2));
 
   if iter==1 || candidateobj < objective,
     reconstruction = candidate;

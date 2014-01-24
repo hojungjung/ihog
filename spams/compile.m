@@ -166,14 +166,14 @@ COMPILE = {
             %'-I./linalg/ linalg/mex/mexSort.cpp', 
             %'-I./linalg/ linalg/mex/mexNormalize.cpp',  
             %% compile decomp toolbox
-            %'-I./linalg/ -I./decomp/ decomp/mex/mexOMP.cpp',
+            '-I./linalg/ -I./decomp/ decomp/mex/mexOMP.cpp',
             '-I./linalg/ -I./decomp/ decomp/mex/mexLasso.cpp',
             %'-I./linalg/ -I./decomp/ decomp/mex/mexLassoWeighted.cpp',
             %'-I./linalg/ -I./decomp/ decomp/mex/mexRidgeRegression.cpp',
             %'-I./linalg/ -I./decomp/ decomp/mex/mexCD.cpp'
             %'-I./linalg/ -I./decomp/ decomp/mex/mexL1L2BCD.cpp', 
             '-I./linalg/ -I./decomp/ decomp/mex/mexLassoMask.cpp',
-            %'-I./linalg/ -I./decomp/ decomp/mex/mexOMPMask.cpp',
+            '-I./linalg/ -I./decomp/ decomp/mex/mexOMPMask.cpp',
             %'-I./linalg/ -I./decomp/ decomp/mex/mexSOMP.cpp',
             %'-I./linalg/ -I./decomp/ decomp/mex/mexSparseProject.cpp',
             %% misc

@@ -27,7 +27,7 @@
 % AxBxC. It will return an PxQxK image tensor where the last channel is the kth
 % inversion. This is usually significantly faster than calling invertHOG() 
 % multiple times.
-function [im, a] = invertHOG(feat, prev, gam, sig, pd, whiten, verbose),
+function [im, a] = invertHOG(feat, prev, gam, sig, omp, pd, whiten, verbose),
 
 if ~exist('prev', 'var'),
   prev = zeros(0,0,0);
@@ -37,6 +37,9 @@ if ~exist('gam', 'var'),
 end
 if ~exist('sig', 'var'),
   sig = 1;
+end
+if ~exist('omp', 'var'),
+  omp = 0;
 end
 if ~exist('pd', 'var') || isempty(pd),
   global ihog_pd
@@ -127,24 +130,32 @@ if numprev > 0,
   end
 end
 
-if verbose,
-  fprintf('ihog: solving lasso\n');
+if omp > 0,
+  if verbose,
+    fprintf('ihog: solving OMP\n');
+  end
+
+  % solve lasso problem
+  param.L = omp;
+  param.mode = 0;
+  a = full(mexOMPMask(single(windows), dhog, mask, param));
+else,
+  if verbose,
+    fprintf('ihog: solving lasso\n');
+  end
+
+  % solve lasso problem
+  param.lambda = pd.lambda * size(windows,1) / (pd.ny*pd.nx*featuresdim() + numprev);
+  param.mode = 2;
+  a = full(mexLassoMask(single(windows), dhog, mask, param));
 end
 
-% solve lasso problem
-param.lambda = pd.lambda * size(windows,1) / (pd.ny*pd.nx*featuresdim() + numprev);
-param.mode = 2;
-
-%param.lambda = 6.09;
-%param.mode = 0;
-
-a = full(mexLassoMask(single(windows), dhog, mask, param));
-recon = pd.dgray * a;
-
 if verbose,
+  l0 = sum(a~=0);
+  l1 = sum(abs(a));
   fprintf('ihog: sparsity = %f\n', sum(a(:) == 0) / length(a(:)));
-  fprintf('ihog: ||a||_0 min=%i  mean=%0.2f  max=%i\n', min(sum(a~=0)), mean(sum(a~=0)), max(sum(a~=0)));
-  fprintf('ihog: ||a||_1 min=%0.2f  mean=%0.2f  max=%0.2f\n', min(sum(abs(a))), mean(sum(abs(a))), max(sum(abs(a))));
+  fprintf('ihog: ||a||_0 stats: min=%i  mean=%0.2f  median=%i  max=%i\n', min(l0), mean(l0), median(l0), max(l0));
+  fprintf('ihog: ||a||_1 stats: min=%0.2f  mean=%0.2f  median=%0.2f  max=%0.2f\n', min(l1), mean(l1), median(l1), max(l1));
 end
 
 if verbose,
@@ -152,6 +163,8 @@ if verbose,
 end
 
 % reconstruct
+recon   = pd.dgray * a;
+
 fil     = fspecial('gaussian', [(pd.ny+2)*pd.sbin (pd.nx+2)*pd.sbin], 9);
 im      = zeros((size(feat,1)+2)*pd.sbin, (size(feat,2)+2)*pd.sbin, nn);
 weights = zeros((size(feat,1)+2)*pd.sbin, (size(feat,2)+2)*pd.sbin, nn);
