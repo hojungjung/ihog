@@ -2,3 +2,4 @@ features.mexa64
 private/
 /*.mat
 .DS_Store
+tmp/
