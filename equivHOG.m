@@ -46,30 +46,32 @@ for i=1:n,
   d = hogs(:, :, :, i) - feat;
   hogdists(i) = sqrt(mean(d(:).^2));
 
-  figure(1);
-  subplot(122);
-  imdiffmatrix(ims(:, :, 1:i), orig, 5);
+  if nargout == 0,
+    figure(1);
+    subplot(122);
+    imdiffmatrix(ims(:, :, 1:i), orig, 5);
 
-  subplot(321);
-  sparsity = mean(reshape(double(prev(:, :, 1:i) == 0), [], i));
-  plot(sparsity(:), '.-', 'LineWidth', 2, 'MarkerSize', 40);
-  title('Alpha Sparsity');
-  ylabel('Sparsity');
-  ylim([0.75 1]);
-  grid on;
+    subplot(321);
+    sparsity = mean(reshape(double(prev(:, :, 1:i) == 0), [], i));
+    plot(sparsity(:), '.-', 'LineWidth', 2, 'MarkerSize', 40);
+    title('Alpha Sparsity');
+    ylabel('Sparsity');
+    ylim([0.75 1]);
+    grid on;
 
-  subplot(323);
-  plot(hogdists(1:i), '.-', 'LineWidth', 2, 'MarkerSize', 40);
-  title('HOG Distance to Target');
-  ylim([0 .1+max(hogdists(:))]);
-  grid on;
+    subplot(323);
+    plot(hogdists(1:i), '.-', 'LineWidth', 2, 'MarkerSize', 40);
+    title('HOG Distance to Target');
+    ylim([0 .1+max(hogdists(:))]);
+    grid on;
 
-  subplot(325);
-  imagesc(hogimvis(ims(:, :, 1:i), hogs(:, :, :, 1:i)));
-  axis image;
+    subplot(325);
+    imagesc(hogimvis(ims(:, :, 1:i), hogs(:, :, :, 1:i)));
+    axis image;
 
-  colormap gray;
-  drawnow;
+    colormap gray;
+    drawnow;
+  end
 end
 
 out = ims;
