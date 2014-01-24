@@ -118,7 +118,13 @@ if numprev > 0,
   end
 
   % build blurred dictionary
-  dblur = xpassdict(pd, sig, false);
+  if sig > 0,
+    fprintf('ihog: highpass with sigma=%0.2f\n', sig);
+    dblur = xpassdict(pd, sig, false);
+  elseif sig < 0,
+    fprintf('ihog: lowpass with sigma=%0.2f\n', -sig);
+    dblur = xpassdict(pd, -sig, true);
+  end
 
   windows = padarray(windows, [numprev*numpreva 0], 0, 'post');
   mask = cat(1, mask, repmat(logical(eye(numpreva, size(windows,2))), [numprev 1]));
@@ -135,7 +141,7 @@ if omp > 0,
     fprintf('ihog: solving OMP\n');
   end
 
-  % solve lasso problem
+  % solve omp problem
   param.L = omp;
   param.mode = 0;
   a = full(mexOMPMask(single(windows), dhog, mask, param));
@@ -153,9 +159,11 @@ end
 if verbose,
   l0 = sum(a~=0);
   l1 = sum(abs(a));
+  l2 = sum(a.^2);
   fprintf('ihog: sparsity = %f\n', sum(a(:) == 0) / length(a(:)));
   fprintf('ihog: ||a||_0 stats: min=%i  mean=%0.2f  median=%i  max=%i\n', min(l0), mean(l0), median(l0), max(l0));
   fprintf('ihog: ||a||_1 stats: min=%0.2f  mean=%0.2f  median=%0.2f  max=%0.2f\n', min(l1), mean(l1), median(l1), max(l1));
+  fprintf('ihog: ||a||_2 stats: min=%0.2f  mean=%0.2f  median=%0.2f  max=%0.2f\n', min(l2), mean(l2), median(l2), max(l2));
 end
 
 if verbose,
@@ -173,6 +181,9 @@ for k=1:nn,
   for i=1:size(feat,1) - pd.ny + 1,
     for j=1:size(feat,2) - pd.nx + 1,
       patch = reshape(recon(:, c), [(pd.ny+2)*pd.sbin (pd.nx+2)*pd.sbin]);
+
+      patch(:) = patch(:) - min(patch(:));
+      patch(:) = patch(:) / max(patch(:) + eps);
       patch = patch .* fil;
 
       iii = (i-1)*pd.sbin+1:(i-1)*pd.sbin+(pd.ny+2)*pd.sbin;
