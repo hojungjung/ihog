@@ -61,7 +61,6 @@ for i=1:n,
   subplot(323);
   plot(hogdists(1:i), '.-', 'LineWidth', 2, 'MarkerSize', 40);
   title('HOG Distance to Target');
-  ylim([0 .1+max(hogdists(:))]);
   grid on;
 
   subplot(325);
