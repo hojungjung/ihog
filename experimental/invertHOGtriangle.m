@@ -3,18 +3,18 @@
 % Attempts to reconstruct the image for the HOG features 'feat' using a brute
 % force algorithm that repeatedly adds triangles to an image only if doing
 % so improves the reconstruction.
-%
-% Optionally, you can specify an initialization image 'init' to use as
-% the starting point. Otherwise, by default it initializes with gray.
-function reconstruction = invertHOGtriangle(feat, init, time, draw, sbin),
+function reconstruction = invertHOGtriangle(feat, prev, gam, time, draw, sbin),
 
 [ny, nx, ~] = size(feat);
 
+if ~exist('gam', 'var'),  
+  gam = 10;
+end
 if ~exist('time', 'var'),
-  time = 86400;
+  time = 30;;
 end
 if ~exist('draw', 'var'),
-  draw = false;
+  draw = true;
 end
 if ~exist('sbin', 'var'),
   sbin = 8;
@@ -24,10 +24,7 @@ iters = time * 1000;
 
 ry = (ny+2)*sbin;
 rx = (nx+2)*sbin;
-
-if ~exist('init', 'var'),
-  init = 0.5 * ones(ry, rx);
-end
+init = 0.5 * ones(ry, rx);
 
 core = tril(ones(max(ry, rx)));
 
@@ -43,7 +40,6 @@ starttime = tic();
 
 for iter=1:iters,
   itertime = toc(starttime);
-
 
   rot = rand() * 360;             % rotate
   w = floor(rand() * sbin*4)+1;   % width
@@ -91,6 +87,11 @@ for iter=1:iters,
   candidatefeat = features(repmat(candidate, [1 1 3]), sbin);
   candidateobj = sqrt(mean((candidatefeat(:) - feat(:)).^2));
 
+  for i=1:size(prev, 3),
+    previm = prev(:, :, i);
+    candidateobj = candidateobj + gam * sqrt(mean((previm(:) - candidate(:)).^2));
+  end
+
   if iter==1 || candidateobj < objective,
     reconstruction = candidate;
     changes = candidatechanges;
@@ -123,11 +124,7 @@ for iter=1:iters,
     plot(objhistory(1:goodtrials));
     title('Objective');
     subplot(224);
-    accim = zeros(1, iter, 3);
-    accim(:, find(acceptances == 1), 2) = 1;
-    accim(:, find(acceptances == -1),  1) = 1;
-    imagesc(accim);
-    title('Acceptances');
+    imdiffmatrix(cat(3, candidate, prev));
     drawnow;
   end
 
