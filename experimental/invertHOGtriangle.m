@@ -20,7 +20,7 @@ if ~exist('sbin', 'var'),
   sbin = 8;
 end
 
-iters = time * 25;
+iters = time * 1000;
 
 ry = (ny+2)*sbin;
 rx = (nx+2)*sbin;
@@ -44,7 +44,6 @@ starttime = tic();
 for iter=1:iters,
   itertime = toc(starttime);
 
-  fprintf('ihog: iter#%i: timeleft=%0.2fs, rate=%0.2fhz, ', iter, time - itertime, iter / itertime);
 
   rot = rand() * 360;             % rotate
   w = floor(rand() * sbin*4)+1;   % width
@@ -92,8 +91,6 @@ for iter=1:iters,
   candidatefeat = features(repmat(candidate, [1 1 3]), sbin);
   candidateobj = norm(candidatefeat(:) - feat(:), 2) / (ny*nx);
 
-  fprintf('old=%f, new=%f', objective, candidateobj);
-
   if iter==1 || candidateobj < objective,
     reconstruction = candidate;
     changes = candidatechanges;
@@ -101,11 +98,13 @@ for iter=1:iters,
     goodtrials = goodtrials + 1;
     objhistory(goodtrials) = candidateobj;
     acceptances(iter) = 1;
-    fprintf(', accept!');
   else,
     acceptances(iter) = -1;
   end
-  fprintf('\n');
+
+  if mod(iter-1, 100) == 0,
+    fprintf('ihog: iter#%i: timeleft=%0.2fs, rate=%0.2fhz, obj=%f\n', iter, time - itertime, iter / itertime, objective);
+  end
 
   if draw && mod(iter, 1000) == 0,
     subplot(241);

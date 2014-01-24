@@ -1,4 +1,4 @@
-function out = equivHOG(orig, n, gam, sig, pd),
+function out = equivHOG(orig, n, gam, sig, triangle, pd),
 
 orig = im2double(orig);
 feat = features(orig, 8);
@@ -12,8 +12,8 @@ end
 if ~exist('sig', 'var'),
   sig = 1;
 end
-if ~exist('si', 'var'),
-  si = .1;
+if ~exist('triangle', 'var'),
+  triangle = 0;
 end
 
 bord = 5;
@@ -28,8 +28,13 @@ hogs = zeros(ny, nx, nf, n);
 dists = zeros(n, 1);
 
 for i=1:n,
-  fprintf('ihog: searching for image #%i\n', i);
+  fprintf('ihog: searching for image %i of %i\n', i, n);
   [im, a] = invertHOG(feat, prev(:, :, 1:i-1), gam, sig, pd);
+
+  if triangle > 0,
+    fprintf('ihog: attempting triangle reconstruction\n');
+    im = invertHOGtriangle(feat, im, triangle);
+  end
 
   ims(:, :, i) = im;
   hogs(:, :, :, i) = features(repmat(im, [1 1 3]), 8);
