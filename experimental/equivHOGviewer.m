@@ -12,7 +12,12 @@ for i=1:length(files),
 
   subplot(121);
   imdiffmatrix(payload.out, payload.im);
+  colormap gray;
 
-  subplot(122);
+  subplot(222);
+  imagesc(payload.im);
+  axis image;
+
+  subplot(224);
   immovie(payload.out, 0.2, 2);
 end
