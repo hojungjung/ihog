@@ -10,7 +10,7 @@ if ~exist('gam', 'var'),
   gam = 1;
 end
 if ~exist('gam2', 'var'),
-  gam2 = .5;
+  gam2 = 1;
 end
 if ~exist('sig', 'var'),
   sig = 1;
@@ -64,6 +64,7 @@ for i=1:n,
   subplot(323);
   plot(hogdists(1:i), '.-', 'LineWidth', 2, 'MarkerSize', 40);
   title('HOG Distance to Target');
+  ylim([0 0.4]);
   grid on;
 
   subplot(325);

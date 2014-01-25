@@ -43,7 +43,8 @@ objective = -1;
 
 starttime = tic();
 
-fil = fspecial('gaussian', [sbin sbin], 2);
+fil = fspecial('gaussian', [sbin sbin], 1);
+passfilter = fspecial('gaussian', [5*sbin 5*sbin], 1);
 
 for iter=1:iters,
   itertime = toc(starttime);
@@ -93,12 +94,14 @@ for iter=1:iters,
   candidatechanges(iy:iy+h-1, ix:ix+w-1) = candidatechanges(iy:iy+h-1, ix:ix+w-1) + trial;
 
   candidatefeat = features(repmat(candidate, [1 1 3]), sbin);
-  candidateobjhog = sum((candidatefeat(:) - feat(:)).^2);
+  candidateobjhog = sqrt(mean((candidatefeat(:) - feat(:)).^2));
 
   candidateobjmulti = 0;
   for i=1:size(prev, 3),
     previm = prev(:, :, i);
-    candidateobjmulti = candidateobjmulti + gam * sum((previm(:) - candidate(:)).^2);
+    diffim = previm - candidate;
+    diffim2 = diffim - filter2(passfilter, diffim, 'same');
+    candidateobjmulti = candidateobjmulti - gam/size(prev,3) * sqrt(mean(diffim2(:).^2));
   end
 
   candidateobj = candidateobjhog + candidateobjmulti;
@@ -143,13 +146,14 @@ for iter=1:iters,
     plot(objhoghistory(1:goodtrials), 'r', 'LineWidth', 2);
     plot(objmultihistory(1:goodtrials), 'b', 'LineWidth', 2);
     grid on;
-    ylim([0 max(objhistory)]);
     title('Objective');
     subplot(224);
     if size(prev,3) > 0,
-      imdiffmatrix(cat(3, candidate, prev));
-      title('Difference Matrix');
+      imdiffmatrix(cat(3, prev, candidate));
+    else,
+      imdiffmatrix(candidate);
     end
+    title('Difference Matrix');
     drawnow;
   end
 
