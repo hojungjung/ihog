@@ -9,6 +9,9 @@ end
 if ~exist('gam', 'var'),
   gam = 1;
 end
+if ~exist('gam2', 'var'),
+  gam2 = .5;
+end
 if ~exist('sig', 'var'),
   sig = 1;
 end
@@ -36,7 +39,7 @@ for i=1:n,
 
   if triangle > 0,
     fprintf('ihog: attempting triangle reconstruction\n');
-    im = invertHOGtriangle(feat, im, triangle);
+    im = invertHOGtriangle(feat, im, ims(:, :, 1:i-1), gam2, triangle);
   end
 
   ims(:, :, i) = im;

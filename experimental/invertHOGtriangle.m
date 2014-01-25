@@ -3,12 +3,12 @@
 % Attempts to reconstruct the image for the HOG features 'feat' using a brute
 % force algorithm that repeatedly adds triangles to an image only if doing
 % so improves the reconstruction.
-function reconstruction = invertHOGtriangle(feat, prev, gam, time, draw, sbin),
+function reconstruction = invertHOGtriangle(feat, init, prev, gam, time, draw, sbin),
 
 [ny, nx, ~] = size(feat);
 
 if ~exist('gam', 'var'),  
-  gam = 10;
+  gam = 0;
 end
 if ~exist('time', 'var'),
   time = 30;;
@@ -24,11 +24,16 @@ iters = time * 1000;
 
 ry = (ny+2)*sbin;
 rx = (nx+2)*sbin;
-init = 0.5 * ones(ry, rx);
+
+if ~exist('init', 'var'),
+  init = 0.5 * ones(ry, rx);
+end
 
 core = tril(ones(max(ry, rx)));
 
 objhistory = zeros(iters, 1);
+objhoghistory = zeros(iters, 1);
+objmultihistory = zeros(iters, 1);
 goodtrials = 0;
 acceptances = zeros(iters, 1);
 
@@ -38,19 +43,22 @@ objective = -1;
 
 starttime = tic();
 
+fil = fspecial('gaussian', [sbin sbin], 2);
+
 for iter=1:iters,
   itertime = toc(starttime);
 
-  rot = rand() * 360;             % rotate
-  w = floor(rand() * sbin*4)+1;   % width
-  h = floor(rand() * sbin*4)+1;   % height
-  x = floor(rand() * rx);         % center x
-  y = floor(rand() * ry);         % center y 
-  int = (rand()-0.5) * 0.5;       % intensity
+  rot = rand() * 360;                      % rotate
+  w = floor(rand() * sbin*4 + sbin/2)+1;   % width
+  h = floor(rand() * sbin*4 + sbin/2)+1;   % height
+  x = floor(rand() * rx);                  % center x
+  y = floor(rand() * ry);                  % center y 
+  int = (rand()-0.5) * 0.5;                % intensity
 
   trial = imrotate(core, rot);
   trial = imresize(trial, [h w]);
   trial = int * trial;
+  trial = filter2(fil, trial);
 
   % calculate position in reconstruction from center of triangle
   ix = floor(x - w/2);
@@ -85,12 +93,15 @@ for iter=1:iters,
   candidatechanges(iy:iy+h-1, ix:ix+w-1) = candidatechanges(iy:iy+h-1, ix:ix+w-1) + trial;
 
   candidatefeat = features(repmat(candidate, [1 1 3]), sbin);
-  candidateobj = sqrt(mean((candidatefeat(:) - feat(:)).^2));
+  candidateobjhog = sum((candidatefeat(:) - feat(:)).^2);
 
+  candidateobjmulti = 0;
   for i=1:size(prev, 3),
     previm = prev(:, :, i);
-    candidateobj = candidateobj + gam * sqrt(mean((previm(:) - candidate(:)).^2));
+    candidateobjmulti = candidateobjmulti + gam * sum((previm(:) - candidate(:)).^2);
   end
+
+  candidateobj = candidateobjhog + candidateobjmulti;
 
   if iter==1 || candidateobj < objective,
     reconstruction = candidate;
@@ -98,6 +109,8 @@ for iter=1:iters,
     objective = candidateobj;
     goodtrials = goodtrials + 1;
     objhistory(goodtrials) = candidateobj;
+    objhoghistory(goodtrials) = candidateobjhog;
+    objmultihistory(goodtrials) = candidateobjmulti;
     acceptances(iter) = 1;
   else,
     acceptances(iter) = -1;
@@ -109,22 +122,34 @@ for iter=1:iters,
 
   if draw && mod(iter, 1000) == 0,
     subplot(241);
-    imagesc(reconstruction); axis image;
+    imagesc(reconstruction, [0 1]); axis image;
     title('Reconstruction');
     subplot(242);
-    imagesc(changes); axis image;
-    title('Changes');
+    imagesc(init); axis image;
+    title('Initialization');
     subplot(243);
+    imagesc(reconstruction - init); axis image;
+    title('Difference');
+    subplot(444);
     showHOG(candidatefeat - mean(candidatefeat(:))); axis image;
     title('Reconstruction HOG');
-    subplot(244);
+    subplot(448);
     showHOG(feat - mean(feat(:)));
     title('Target HOG');
     subplot(223);
-    plot(objhistory(1:goodtrials));
+    cla;
+    plot(objhistory(1:goodtrials), 'k', 'LineWidth', 5);
+    hold on;
+    plot(objhoghistory(1:goodtrials), 'r', 'LineWidth', 2);
+    plot(objmultihistory(1:goodtrials), 'b', 'LineWidth', 2);
+    grid on;
+    ylim([0 max(objhistory)]);
     title('Objective');
     subplot(224);
-    imdiffmatrix(cat(3, candidate, prev));
+    if size(prev,3) > 0,
+      imdiffmatrix(cat(3, candidate, prev));
+      title('Difference Matrix');
+    end
     drawnow;
   end
 
